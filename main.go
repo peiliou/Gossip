@@ -85,7 +85,7 @@ func main() {
 				mutex.RLock()
 
 				for k, v := range addr_map {
-					fmt.Println(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))
+					fmt.Println(k+","+fmt.Sprint(v.timestamp)+","+fmt.Sprint(v.num), ",", fmt.Sprint(v.blocklisted))
 				}
 
 				mutex.RUnlock()
@@ -105,7 +105,6 @@ func main() {
 				}
 
 				mutex.Unlock()
-
 				continue
 			}
 		}
@@ -123,6 +122,7 @@ func send_request(addr string) bool {
 		}
 		return false
 	} else {
+		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 		update_addr_map(conn)
 		return true
 	}
@@ -153,7 +153,8 @@ func update_addr_map(conn net.Conn) {
 				break
 			}
 
-			ip += ":" + fmt.Sprint(port) //not going to check how many connections in the table are from this IP due to same wifi testing
+			//not going to check how many connections in the table are from this IP due to same wifi testing
+			ip += ":" + fmt.Sprint(port)
 
 			if entry, ok := addr_map[ip]; ok {
 				ts := entry.timestamp
@@ -238,6 +239,7 @@ func handle_request(conn net.Conn) {
 	defer mutex.RUnlock()
 
 	for k, v := range addr_map {
+		conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 		conn.Write([]byte(fmt.Sprintln(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
 	}
 }
@@ -252,6 +254,7 @@ func handle_request_adversarial(conn net.Conn) {
 	tcp.SetWriteBuffer(64)
 
 	for k, v := range addr_map {
+		conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 		tcp.Write([]byte(fmt.Sprintln(k + "," + fmt.Sprint(time.Now().Unix()+1) + "," + fmt.Sprint(v.num))))
 		tcp.Write([]byte(fmt.Sprintln("127.0.0.1:" + strings.Split(k, ":")[1] + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
 		tcp.Write([]byte(fmt.Sprintln("0.0.0.0:" + strings.Split(k, ":")[1] + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
