@@ -10,18 +10,18 @@ import (
 	"time"
 )
 
-//table entry struct
+// table entry struct
 type addr_info struct {
 	timestamp   int64
 	num         int
 	blocklisted bool
 }
 
-//configuration
+// configuration
 var server_port string = "6410"
 var adversarial bool = false
 
-//global variables
+// global variables
 var addr_map map[string]*addr_info
 var self_ip string
 
@@ -83,10 +83,16 @@ func main() {
 			var n5 uint16
 			if n, err := fmt.Sscanf(cmd, "+%d.%d.%d.%d:%d\n", &n1, &n2, &n3, &n4, &n5); n == 5 && err == nil {
 				new_info := addr_info{time.Now().Unix(), -1, false}
+
+				mutex.Lock()
+
 				ok := send_request(cmd[1:])
 				if ok {
 					addr_map[cmd[1:]] = &new_info //might overwrite existing record if duplicated
 				}
+
+				mutex.Unlock()
+
 				continue
 			}
 		}
@@ -174,6 +180,8 @@ func schedule() {
 	for {
 		time.Sleep(3000 * time.Millisecond)
 		//select a random entry in its map ignoring its own entry  and try to set up a TCP/IP connection to a node for gossip
+		mutex.Lock()
+
 		for k, v := range addr_map {
 			if k == self_ip || v.blocklisted {
 				continue
@@ -181,6 +189,8 @@ func schedule() {
 				send_request(k)
 			}
 		}
+
+		mutex.Unlock()
 	}
 }
 
