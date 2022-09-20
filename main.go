@@ -21,6 +21,7 @@ type addr_info struct {
 // configuration
 var server_port string = "6410"
 var adversarial bool = false
+var public_ip bool = false
 
 // global variables
 var addr_map map[string]*addr_info
@@ -30,11 +31,27 @@ var self_ip string
 func main() {
 	addr_map = make(map[string]*addr_info) //init info list
 
-	var err error
-	self_ip, err = Http_get("https://api.ipify.org") //get self ip
-	if err != nil {
-		panic(err)
+	if public_ip {
+		var err error
+		self_ip, err = Http_get("https://api.ipify.org") //get self ip
+		if err != nil {
+			panic(err)
+		}
+	} else {
+
+		addrs, err := net.InterfaceAddrs()
+		if err != nil {
+			panic(err)
+		}
+
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok &&
+				!ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				self_ip = ipnet.IP.String()
+			}
+		}
 	}
+
 	self_ip += ":" + server_port
 
 	new_info := addr_info{time.Now().Unix(), 0, false} //create this computer's own record; default number to 0
@@ -85,7 +102,7 @@ func main() {
 				mutex.RLock()
 
 				for k, v := range addr_map {
-					fmt.Println(k+","+fmt.Sprint(v.timestamp)+","+fmt.Sprint(v.num), ",", fmt.Sprint(v.blocklisted))
+					fmt.Println(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num) + "," + fmt.Sprint(v.blocklisted))
 				}
 
 				mutex.RUnlock()
