@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -23,6 +24,7 @@ var adversarial bool = false
 
 // global variables
 var addr_map map[string]*addr_info
+var mutex = &sync.RWMutex{}
 var self_ip string
 
 func main() {
