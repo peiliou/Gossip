@@ -203,11 +203,12 @@ func schedule() {
 			if k == self_ip || v.blocklisted {
 				continue
 			} else {
-				mutex.RUnlock()
 				send_request(k)
 				break
 			}
 		}
+
+		mutex.RUnlock()
 	}
 }
 
