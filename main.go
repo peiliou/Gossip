@@ -58,26 +58,37 @@ func main() {
 			char := int(cmd[0])
 
 			if char == '?' {
+				mutex.RLock()
+
 				//print beautified addr_map
 				for k, v := range addr_map {
 					fmt.Println(k, " --> ", v.num)
 				}
 
+				mutex.RUnlock()
 				continue
 			} else if char >= '0' && char <= '9' {
+				mutex.Lock()
+
 				if entry, ok := addr_map[self_ip]; ok {
 					(*entry).timestamp = time.Now().Unix()
 					(*entry).num = char - '0'
 
 					fmt.Println(self_ip, " --> ", char-'0')
 
+					mutex.Unlock()
 					continue
 				}
+
+				mutex.Unlock()
 			} else if char == '!' {
+				mutex.RLock()
+
 				for k, v := range addr_map {
 					fmt.Println(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))
 				}
 
+				mutex.RUnlock()
 				continue
 			}
 		default:
@@ -189,6 +200,7 @@ func schedule() {
 				continue
 			} else {
 				send_request(k)
+				break
 			}
 		}
 
@@ -222,6 +234,9 @@ func server() {
 func handle_request(conn net.Conn) {
 	defer conn.Close()
 
+	mutex.RLock()
+	defer mutex.RUnlock()
+
 	for k, v := range addr_map {
 		conn.Write([]byte(fmt.Sprintln(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
 	}
@@ -229,6 +244,9 @@ func handle_request(conn net.Conn) {
 
 func handle_request_adversarial(conn net.Conn) {
 	defer conn.Close()
+
+	mutex.RLock()
+	defer mutex.RUnlock()
 
 	tcp := conn.(*net.TCPConn)
 	tcp.SetWriteBuffer(64)
