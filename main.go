@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -24,7 +23,6 @@ var adversarial bool = false
 
 //global variables
 var addr_map map[string]*addr_info
-var mutex = &sync.RWMutex{}
 var self_ip string
 
 func main() {
@@ -59,36 +57,25 @@ func main() {
 
 			if char == '?' {
 				//print beautified addr_map
-				mutex.RLock()
-
 				for k, v := range addr_map {
 					fmt.Println(k, " --> ", v.num)
 				}
 
-				mutex.RUnlock()
 				continue
 			} else if char >= '0' && char <= '9' {
-				mutex.Lock()
-
 				if entry, ok := addr_map[self_ip]; ok {
 					(*entry).timestamp = time.Now().Unix()
 					(*entry).num = char - '0'
 
 					fmt.Println(self_ip, " --> ", char-'0')
 
-					mutex.Unlock()
 					continue
 				}
-
-				mutex.Unlock()
 			} else if char == '!' {
-				mutex.RLock()
-
 				for k, v := range addr_map {
 					fmt.Println(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))
 				}
 
-				mutex.RUnlock()
 				continue
 			}
 		default:
@@ -96,16 +83,10 @@ func main() {
 			var n5 uint16
 			if n, err := fmt.Sscanf(cmd, "+%d.%d.%d.%d:%d\n", &n1, &n2, &n3, &n4, &n5); n == 5 && err == nil {
 				new_info := addr_info{time.Now().Unix(), -1, false}
-
 				ok := send_request(cmd[1:])
 				if ok {
-					mutex.Lock()
-
 					addr_map[cmd[1:]] = &new_info //might overwrite existing record if duplicated
-
-					mutex.Unlock()
 				}
-
 				continue
 			}
 		}
@@ -115,9 +96,6 @@ func main() {
 
 func send_request(addr string) bool {
 	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
-
-	mutex.Lock()
-	defer mutex.Unlock()
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -195,20 +173,14 @@ func Http_get(url string) (string, error) {
 func schedule() {
 	for {
 		time.Sleep(3000 * time.Millisecond)
-
 		//select a random entry in its map ignoring its own entry  and try to set up a TCP/IP connection to a node for gossip
-		mutex.RLock()
-
 		for k, v := range addr_map {
 			if k == self_ip || v.blocklisted {
 				continue
 			} else {
 				send_request(k)
-				break
 			}
 		}
-
-		mutex.RUnlock()
 	}
 }
 
@@ -238,9 +210,6 @@ func server() {
 func handle_request(conn net.Conn) {
 	defer conn.Close()
 
-	mutex.RLock()
-	defer mutex.RUnlock()
-
 	for k, v := range addr_map {
 		conn.Write([]byte(fmt.Sprintln(k + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
 	}
@@ -248,9 +217,6 @@ func handle_request(conn net.Conn) {
 
 func handle_request_adversarial(conn net.Conn) {
 	defer conn.Close()
-
-	mutex.RLock()
-	defer mutex.RUnlock()
 
 	tcp := conn.(*net.TCPConn)
 	tcp.SetWriteBuffer(64)
