@@ -178,15 +178,15 @@ func update_addr_map(conn net.Conn) {
 				if t > ts && !entry.blocklisted {
 					(*entry).timestamp = t
 					(*entry).num = d
-				} else if t > time.Now().Unix() {
-					(*entry).blocklisted = true
+
+					fmt.Printf("\n%s --> %d\n", ip, d)
 				}
 			} else {
 				new_info := addr_info{t, d, false}
 				addr_map[ip] = &new_info //golang feature: escape analysis
-			}
 
-			fmt.Printf("\n%s --> %d\n", ip, d)
+				fmt.Printf("\n%s --> %d\n", ip, d)
+			}
 		}
 	}
 }
