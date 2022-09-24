@@ -273,8 +273,8 @@ func handle_request_adversarial(conn net.Conn) {
 	for k, v := range addr_map {
 		conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 		tcp.Write([]byte(fmt.Sprintln(k + "," + fmt.Sprint(time.Now().Unix()+1) + "," + fmt.Sprint(v.num))))
-		tcp.Write([]byte(fmt.Sprintln("127.0.0.1:" + strings.Split(k, ":")[1] + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
-		tcp.Write([]byte(fmt.Sprintln("0.0.0.0:" + strings.Split(k, ":")[1] + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
-		tcp.Write([]byte(fmt.Sprintln("8.8.8.8:80" + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(v.num))))
+		tcp.Write([]byte(fmt.Sprintln("127.0.0.1:" + strings.Split(k, ":")[1] + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(1))))
+		tcp.Write([]byte(fmt.Sprintln("0.0.0.0:" + strings.Split(k, ":")[1] + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(0))))
+		tcp.Write([]byte(fmt.Sprintln("8.8.8.8:80" + "," + fmt.Sprint(v.timestamp) + "," + fmt.Sprint(8))))
 	}
 }
