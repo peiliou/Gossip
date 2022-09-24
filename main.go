@@ -112,7 +112,7 @@ func main() {
 			var n1, n2, n3, n4 uint8
 			var n5 uint16
 			if n, err := fmt.Sscanf(cmd, "+%d.%d.%d.%d:%d\n", &n1, &n2, &n3, &n4, &n5); n == 5 && err == nil {
-				new_info := addr_info{time.Now().Unix(), -1, false}
+				new_info := addr_info{0, -1, false}
 
 				mutex.Lock()
 
@@ -159,14 +159,14 @@ func update_addr_map(conn net.Conn) {
 		var t int64
 		var d int
 		//example: 128.84.213.13:5678,1630281124,1
-		if n, err := fmt.Sscanf(data, "%d.%d.%d.%d:%d,%d\n", &n1, &n2, &n3, &n4, &port, &t, &d); n == 7 && err == nil &&
+		if n, err := fmt.Sscanf(data, "%d.%d.%d.%d:%d,%d,%d\n", &n1, &n2, &n3, &n4, &port, &t, &d); n == 7 && err == nil &&
 			d >= 0 && d <= 9 && t <= time.Now().Unix() {
 
 			ip := fmt.Sprintf("%d.%d.%d.%d", n1, n2, n3, n4)
 			ip_address := net.ParseIP(ip)
 
 			//check if private ip
-			if ip_address == nil || ip_address.IsPrivate() {
+			if ip_address == nil || (public_ip && ip_address.IsPrivate()) {
 				break
 			}
 
@@ -178,7 +178,7 @@ func update_addr_map(conn net.Conn) {
 				if t > ts && !entry.blocklisted {
 					(*entry).timestamp = t
 					(*entry).num = d
-				} else {
+				} else if t > time.Now().Unix() {
 					(*entry).blocklisted = true
 				}
 			} else {
