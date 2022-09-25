@@ -48,14 +48,19 @@ func main() {
 			panic(err)
 		}
 	} else {
-		conn, err := net.Dial("udp", "9.9.9.9:0")
+
+		addrs, err := net.InterfaceAddrs()
 		if err != nil {
 			panic(err)
 		}
 
-		self_ip = conn.LocalAddr().(*net.UDPAddr).IP.String()
-
-		conn.Close()
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok &&
+				!ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil && ipnet.IP.String()[:3] == "10." {
+				self_ip = ipnet.IP.String()
+				break
+			}
+		}
 	}
 
 	self_ip += ":" + server_port
