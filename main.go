@@ -56,8 +56,9 @@ func main() {
 
 		for _, addr := range addrs {
 			if ipnet, ok := addr.(*net.IPNet); ok &&
-				!ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				!ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil && ipnet.IP.String()[:3] == "10." {
 				self_ip = ipnet.IP.String()
+				break
 			}
 		}
 	}
