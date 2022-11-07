@@ -36,9 +36,14 @@ Each node maintains a map from TCP/IP address to a pair (time, digit). Whenever 
 
 When the user types +x.x.x.x:port, the node tries to set up a connection to the given TCP/IP address. The connection may fail, and that’s ok
 
-Every 3 seconds, the node selects a random entry in its map (it can ignore its own entry when selecting one), and try to set up a TCP/IP connection to the selected node in order to attempt a gossip
+Every 3 seconds, the node selects a random entry in its map, and try to set up a TCP/IP connection to the selected node in order to attempt a gossip
 
 ## Usage
+**change the following boolean variable to true in `main.go` if you want to use your public ip address**
+
+`var public_ip bool = false`
+
+---
 
 ```
 /* launch commands (default server port is 6410 if unspecified) */
@@ -54,8 +59,6 @@ Available Commands:
 [!]: display connection records (user-level)
 [?]: display local CSV table records (debug-level)
 [a]: toggle on/off adversarial mode (reply to new gossip requests with invalid info)
-
-
 ```
 
 ## Robustness
