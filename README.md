@@ -28,8 +28,8 @@ All communication will take place over TCP/IP happening in a "pull" style: when 
 No spaces or tabs can be used. Each line is terminated by a single newline (line feed) character (ASCII code 10 or 0xA). After sending this CSV table, node Y closes the connection.
 > For example, in the example above, the response may look like this:
 >```
-128.84.213.13:5678,1630281124,1
-128.84.213.43:9876,1630282312,7
+> 128.84.213.13:5678,1630281124,1
+> 128.84.213.43:9876,1630282312,7
 >```
 
 Each node maintains a map from TCP/IP address to a pair (time, digit). Whenever a node learns of a new TCP/IP address, or an existing TCP/IP address with a later time, then it updates the map accordingly. The node also updates its own entry when the user enters a digit. Initially the map is empty
